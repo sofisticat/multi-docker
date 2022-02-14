@@ -1,0 +1,28 @@
+sudo: required
+
+language: generic 
+
+
+services:
+  - docker
+
+before_install:
+  - docker build -t sofisticat/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true sofisticat/react-test npm test
+
+
+after_success:
+  - docker build -t sofisticat/multi-client ./client
+  - docker build -t sofisticat/multi-nginx ./nginx
+  - docker build -t sofisticat/multi-server ./server
+  - docker build -t sofisticat/multi-worker ./worker
+  # take images and push the docker hub
+  - echo "$DOCKER_PASS" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push sofisticat/multi-client
+  - docker push sofisticat/multi-nginx
+  - docker push sofisticat/multi-server
+  - docker push sofisticat/multi-worker
+  
+  
